@@ -37,6 +37,8 @@ public class RobotContainer {
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
+  private final CommandXboxController kidController = new CommandXboxController(1);
+  private boolean kidActive = false;
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -112,9 +114,9 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> -((kidActive ? kidController : controller).getLeftY()),
+            () -> -(kidActive ? kidController : controller).getLeftX(),
+            () -> -(kidActive ? kidController : controller).getRightX()));
 
     // Lock to 0° when A button is held
     controller
@@ -128,6 +130,7 @@ public class RobotContainer {
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    controller.rightTrigger().whileTrue(Commands.runEnd(() -> kidActive = true, () -> kidActive = false));
 
     // Reset gyro to 0° when B button is pressed
     controller
